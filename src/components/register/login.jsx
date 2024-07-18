@@ -21,6 +21,7 @@ const handleSubmit = async()=>{
   localStorage.setItem("User", response?.user);
   navigate("/");
   }
+  
 }
   return (
     <>
