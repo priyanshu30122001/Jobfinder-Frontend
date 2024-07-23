@@ -5,6 +5,7 @@ export const loginUser =async(email,password)=>{
     try{
         const reqUrl =`${backendUrl}/api/auth/login/`;
         const response = await axios.post(reqUrl,{email:email,password:password});
+        console.log(response.data);
         return response.data;
          
     }

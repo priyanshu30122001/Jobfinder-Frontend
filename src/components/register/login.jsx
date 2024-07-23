@@ -19,6 +19,7 @@ const handleSubmit = async()=>{
  if (response?.token) {
   localStorage.setItem("token", response?.token);
   localStorage.setItem("User", response?.user);
+  localStorage.setItem("userId",response?.userId)
   navigate("/");
   }
   

@@ -8,6 +8,7 @@ export default {
     extend: {     
      backgroundImage: {
         'hero': "url('../src/assets/image.png')",
+        'jobpost':"url('../src/assets/job-post.png')",
       },
       fontFamily: {
         roboto: ["Roboto","sans" ],

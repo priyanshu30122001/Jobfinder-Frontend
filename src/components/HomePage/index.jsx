@@ -3,7 +3,7 @@ import { useEffect,useState } from 'react';
 import { CiSearch } from "react-icons/ci";
 import { MdPeopleAlt } from "react-icons/md";
 import { useNavigate } from 'react-router-dom';
-import { getAllJobPost } from '../../apis/job';
+import { fetchJobsByQuery,fetchJobsBySkills, getAllJobPost } from '../../apis/job';
 import { DEFAULT_SKILLS } from '../../utils/constants';
 import Header from '../header/header';
 import flag from '../../assets/flag.png'
@@ -12,14 +12,14 @@ import flag from '../../assets/flag.png'
 function HomePage() {
   
   const navigate = useNavigate();
-  const [jobs,setJobs] = useState([]);
+  const [jobs,setJobs] = useState(["nodata"]);
   const [skills,setSkills] = useState([]);
   const [title,setTitle] = useState("");
   const [token] = useState(localStorage.getItem("token"));
 
   const fetchAllJobs = async()=>{
-    const filterSkills = skills.join(",");
-    const response = await getAllJobPost({skills:filterSkills,title});
+    // const filterSkills = skills.join(",");
+    const response = await getAllJobPost();
     setJobs(response.data);    
   }
 
@@ -27,19 +27,46 @@ function HomePage() {
     fetchAllJobs();
   },[]);
 
-  
-
+  const fetchBySearch= async(event)=>{
+    const result = await fetchJobsByQuery({title});
+    setJobs(result.data);
+  } 
+  const fetchBySkills = async(event)=>{
+    if(skills.length){
+      const result = await fetchJobsBySkills({skills});
+      setJobs(result.data);
+    }
+    else{
+      alert("enter a filter ");
+      fetchAllJobs();
+    }
+ 
+    // console.log(result);
+    // fetchAllJobs()
+    
+  }
   const handleSkill =(event)=>{
     const newArr = skills.filter((skill)=> skill === event);
     if(!newArr.length){
       setSkills([...skills,event.target.value]);
     }
   };
-
   const removeSkill =(selectedSkill)=>{
     const newArr = skills.filter((skill)=> skill !== selectedSkill);
     setSkills([...newArr]);
   }
+  const handleKeyDown = async(event) => {
+    //  console.log(event.key);
+    if(title === "" &&  event.key === "Enter"){
+      alert("enter value to search")
+    }
+    else if(event.key === "Enter"){
+         fetchBySearch()   
+    }
+    else if( title == ""){
+       fetchAllJobs()
+    }  
+  };
   return (
     <div className=''>
       <Header/>
@@ -52,6 +79,7 @@ function HomePage() {
                       className='w-[60vw] h-[6vh] border-[1.8px] border-[#E3E3E3] rounded pl-[5vw] text-[#9C9C9C] text-[23px]' 
                       value={title}
                       onChange={(event)=>setTitle(event.target.value)}
+                      onKeyDown={handleKeyDown}
                       name='search'
                       placeholder='Type any job Title'  
                   />
@@ -66,7 +94,7 @@ function HomePage() {
                         className=' w-[8vw] text-[#CECECE] text-[17px] font-[500] border-[2px]  border-[#CECECE] rounded-md h-[5vh] text-center'
                         // value={e.target.value}
                       >
-                        <option disabled selected value=" ">Skills</option>
+                        <option disabled selected value="">Skills</option>
                         {DEFAULT_SKILLS.map((skill)=>(
                           <option key={skill} value={skill}>
                             {skill}
@@ -86,28 +114,38 @@ function HomePage() {
                       </div>
                     </div>
                     <div className='grid grid-cols-2 gap-y-[2vh]'>
-                      <button onClick={fetchAllJobs} className=' bg-[#ED5353] text-[white] w-content px-[1.5vw] py-[0.5vh] rounded text-[19.61px]'>Apply Filter </button>
+                      <button 
+                        onClick={fetchBySkills} 
+                         className=' bg-[#ED5353] text-[white] w-content px-[1.5vw] py-[0.5vh] rounded text-[19.61px]'
+                      >
+                        Apply Filter 
+                      </button>
                       <button
                         onClick={()=>{
                           setSkills([]);
                           setTitle("");
+                          fetchAllJobs();
                         }}
                         className='text-[#ED5353] w-content text-[20px] font-[500]'
                       >Clear
                       </button>
-                       <button
-                      onClick={()=> navigate("/job-post")}
-                      className=' bg-[#ED5353] text-[white] w-content px-[1.5vw] py-[0.5vh] rounded text-[19.61px]'
-                      >
+                      { token ? <>
+                        <button
+                          onClick={()=> navigate("/job-post")}
+                          className=' bg-[#ED5353] text-[white] w-content px-[1.5vw] py-[0.5vh] rounded text-[19.61px]'
+                          >
                         + Add Job
-                      </button> 
+                        </button> 
+                      </>:
+                      " "
+                      }
                     </div>
                 </div> 
             </div>
             <div className=' flex flex-col gap-[4vh] my-[10vh] '>
             {jobs.map((data)=>{
               return (
-                 <div className=''>
+                 
                     <div key={data._id} className='border-[1px] px-[2vw] py-[1.5vh] shadow-[0px_0px_22px_2px_#FF202040;] '>
                       <div className=' flex justify-between '>
                           <div className='flex gap-[1vw] items-center' >
@@ -143,7 +181,6 @@ function HomePage() {
                           </div>
                       </div>
                     </div>   
-                 </div>
               )})
             } 
             </div>
